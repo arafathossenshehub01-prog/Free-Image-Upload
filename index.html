@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Image Hosting & CDN</title>
+    <!-- Material Design Icons & Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    
+    <style>
+        :root {
+            --md-sys-color-primary: #6750A4;
+            --md-sys-color-on-primary: #FFFFFF;
+            --md-sys-color-primary-container: #EADDFF;
+            --md-sys-color-on-primary-container: #21005D;
+            --md-sys-color-surface: #FEF7FF;
+            --md-sys-color-on-surface: #1D1B20;
+            --md-sys-color-surface-variant: #E7E0EC;
+            --md-sys-color-on-surface-variant: #49454F;
+            --md-sys-color-outline: #79747E;
+            --md-sys-color-error: #B3261E;
+            --md-sys-color-error-container: #F9DEDC;
+            --md-sys-color-on-error-container: #410E0B;
+            --md-sys-color-success: #146C43;
+            --md-sys-color-success-container: #D1E7DD;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            /* মোবাইল বা ব্রাউজারে ক্লিক করলে ব্লু হাইলাইট/রিপল ইফেক্ট আসবে না */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #F6F2FA;
+            color: var(--md-sys-color-on-surface);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+            /* ইউজার বাইরের কোনো টেক্সট সিলেক্ট বা কপি করতে পারবে না */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .card {
+            background-color: var(--md-sys-color-surface);
+            border-radius: 28px;
+            padding: 24px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.30);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header .icon-wrapper {
+            background: none;
+            padding: 0;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .header .icon {
+            font-size: 54px;
+            color: var(--md-sys-color-primary);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .header p {
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-top: 4px;
+        }
+
+        /* Material M3 Drop Zone */
+        .drop-zone {
+            border: 1px dashed var(--md-sys-color-outline);
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            background-color: var(--md-sys-color-surface-variant);
+            transition: all 0.2s ease;
+            margin-bottom: 24px;
+        }
+
+        .drop-zone:hover {
+            background-color: #E1D9E6;
+            border-color: var(--md-sys-color-primary);
+        }
+
+        .drop-zone .upload-icon {
+            font-size: 36px;
+            color: var(--md-sys-color-primary);
+            margin-bottom: 12px;
+        }
+
+        .drop-zone h1 {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .drop-zone p {
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Preview State */
+        .preview-container {
+            display: none;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--md-sys-color-surface-variant);
+            position: relative;
+        }
+
+        #previewImage {
+            width: 100%;
+            max-height: 250px;
+            object-fit: contain;
+            background: #f8fafc;
+        }
+
+        .action-container {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .btn-md3 {
+            border: none;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: 100px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .btn-upload {
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            flex: 1;
+            justify-content: center;
+        }
+
+        .btn-upload:hover {
+            box-shadow: 0px 4px 8px rgba(0,0,0,0.3);
+            background-color: #553f8a;
+        }
+
+        .btn-cancel {
+            background-color: var(--md-sys-color-error-container);
+            color: var(--md-sys-color-on-error-container);
+            flex: 1;
+            justify-content: center;
+        }
+
+        .btn-cancel:hover {
+            box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+            background-color: #F2B8B5;
+        }
+
+        .btn-reset {
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            margin-top: 20px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-reset:hover {
+            box-shadow: 0px 2px 6px rgba(0,0,0,0.25);
+            background-color: #E1D5F5;
+        }
+
+        /* প্রোগ্রেস বার এবং লাইভ সাইজ ইন্ডিকেটর */
+        .progress-container {
+            display: none;
+            margin: 16px 0 24px 0;
+        }
+
+        .status-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .status-text {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--md-sys-color-primary);
+            letter-spacing: 0.5px;
+        }
+
+        .live-size-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface-variant);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .progress-bar-bg {
+            height: 6px;
+            width: 100%;
+            background-color: var(--md-sys-color-primary-container);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background-color: var(--md-sys-color-primary);
+            transition: width 0.1s linear;
+        }
+
+        /* Result Area */
+        .result-card {
+            display: none;
+            background-color: var(--md-sys-color-success-container);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #0F5132;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .url-box {
+            display: flex;
+            background: var(--md-sys-color-surface);
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: 12px;
+            overflow: hidden;
+            width: 100%;
+            align-items: center;
+        }
+
+        .url-box input {
+            flex: 1;
+            border: none;
+            padding: 12px 14px;
+            font-size: 14px;
+            background: transparent;
+            color: var(--md-sys-color-on-surface);
+            outline: none;
+            min-width: 0;
+            /* আউটপুট বক্সের লিংক সিলেক্ট করা যাবে */
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }
+
+        .btn-icon {
+            background: var(--md-sys-color-primary-container);
+            border: none;
+            border-left: 1px solid var(--md-sys-color-outline);
+            color: var(--md-sys-color-on-primary-container);
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            outline: none;
+        }
+
+        .btn-icon:hover {
+            background: #DC92FF;
+        }
+
+        /* Error Banner */
+        .error-banner {
+            display: none;
+            background-color: #F8D7DA;
+            color: #842029;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <div class="icon-wrapper">
+            <span class="material-icons-outlined icon">cloud_upload</span>
+        </div>
+        <h1>Upload Image To Url</h1>
+        <p>Ai Prompt Community</p>
+    </div>
+
+    <!-- Error Display -->
+    <div class="error-banner" id="errorBanner">
+        <span class="material-icons-outlined" style="font-size: 20px;">error_outline</span>
+        <span id="errorText">কিছু একটা ভুল হয়েছে!</span>
+    </div>
+
+    <!-- Image Preview -->
+    <div class="preview-container" id="previewContainer">
+        <img id="previewImage" src="" alt="Selected Image">
+    </div>
+
+    <!-- Loading Indicator with Live Data Count -->
+    <div class="progress-container" id="progressContainer">
+        <div class="status-wrapper">
+            <div class="status-text" id="statusText">Uploading..</div>
+            <div class="live-size-text" id="liveSizeText">0 KB / 0 KB</div>
+        </div>
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+    </div>
+
+    <!-- Drop Zone -->
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <span class="material-icons-outlined upload-icon">add_photo_alternate</span>
+        <br>
+        <h1>Drag & drop or click to upload</h1>
+        <br>
+        <p>Supports JPG, PNG, GIF, WebP up to 100MB</p>
+        <input type="file" id="fileInput" accept=".jpg, .jpeg, .png, .gif, .webp">
+    </div>
+
+    <!-- Upload & Cancel Button Area -->
+    <div class="action-container" id="actionContainer">
+        <button class="btn-md3 btn-cancel" id="cancelBtn" onclick="resetUploader()">
+            <span class="material-icons-outlined">cancel</span>
+            Cancel
+        </button>
+        <button class="btn-md3 btn-upload" id="uploadBtn" onclick="startUpload()">
+            <span class="material-icons-outlined">cloud_upload</span>
+            Upload
+        </button>
+    </div>
+
+    <!-- Output Result -->
+    <div class="result-card" id="resultCard">
+        <div class="result-header">
+            <span class="material-icons-outlined" style="color: var(--md-sys-color-success);">check_circle</span>
+            Asset deployed successfully to production CDN!
+        </div>
+        <div class="url-box">
+            <input type="text" id="outputUrl" readonly>
+            <button class="btn-icon" id="copyBtn" onclick="copyToClipboard()" title="Copy Link">
+                <span class="material-icons-outlined">content_copy</span>
+            </button>
+        </div>
+        
+        <button class="btn-md3 btn-reset" id="resetBtn" onclick="resetUploader()">
+            <span class="material-icons-outlined">refresh</span>
+            New Image Upload
+        </button>
+    </div>
+</div>
+
+<script>
+    const GITHUB_CONFIG = {
+        token: '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',
+        username: 'arafathossenshehub01-prog',
+        repo: 'Free-Image-Upload',
+        branch: 'main'
+    };
+
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const actionContainer = document.getElementById('actionContainer');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImage = document.getElementById('previewImage');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const statusText = document.getElementById('statusText');
+    const liveSizeText = document.getElementById('liveSizeText');
+    const resultCard = document.getElementById('resultCard');
+    const outputUrl = document.getElementById('outputUrl');
+    const errorBanner = document.getElementById('errorBanner');
+    const errorText = document.getElementById('errorText');
+    
+    let selectedFile = null;
+    let progressInterval = null;
+
+    const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+
+    // Drag and Drop implementation
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => { e.preventDefault(); dropZone.style.background = '#E1D9E6'; }, false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => { e.preventDefault(); dropZone.style.background = 'var(--md-sys-color-surface-variant)'; }, false);
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if(files.length > 0) {
+            validateAndPrepare(files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if(e.target.files.length > 0) {
+            validateAndPrepare(e.target.files[0]);
+        }
+    });
+
+    function validateAndPrepare(file) {
+        if (!ALLOWED_TYPES.includes(file.type)) {
+            showTopError('অনুমোদিত ফাইল ফরম্যাট নয়! দয়া করে JPG, PNG, GIF বা WebP ফাইল সিলেক্ট করো।');
+            fileInput.value = '';
+            return;
+        }
+
+        if (file.size > MAX_FILE_SIZE) {
+            showTopError('ফাইলের সাইজ অনেক বড়! সর্বোচ্চ 100MB পর্যন্ত ইমেজ আপলোড করা যাবে।');
+            fileInput.value = '';
+            return;
+        }
+
+        prepareUpload(file);
+    }
+
+    function prepareUpload(file) {
+        selectedFile = file;
+        errorBanner.style.display = 'none';
+        resultCard.style.display = 'none';
+        progressContainer.style.display = 'none';
+        
+        previewImage.src = URL.createObjectURL(file);
+        previewContainer.style.display = 'block';
+        
+        dropZone.style.display = 'none';
+        actionContainer.style.display = 'flex';
+    }
+
+    function formatSize(bytes) {
+        if (bytes === 0) return '0 KB';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        if(i === 0) return bytes + ' ' + sizes[i];
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    async function startUpload() {
+        if (!selectedFile) return;
+
+        actionContainer.style.display = 'none';
+        progressContainer.style.display = 'block';
+        statusText.innerText = 'Uploading..';
+        
+        const totalBytes = selectedFile.size;
+        const totalSizeFormatted = formatSize(totalBytes);
+        
+        let currentPercent = 0;
+        progressBar.style.width = '0%';
+        liveSizeText.innerText = `0 KB / ${totalSizeFormatted}`;
+
+        progressInterval = setInterval(() => {
+            if (currentPercent < 90) {
+                currentPercent += Math.random() * 4 + 1; 
+                if (currentPercent > 90) currentPercent = 90;
+                
+                progressBar.style.width = `${currentPercent}%`;
+                const uploadedBytes = Math.floor((currentPercent / 100) * totalBytes);
+                liveSizeText.innerText = `${formatSize(uploadedBytes)} / ${totalSizeFormatted}`;
+            }
+        }, 150);
+
+        const extension = selectedFile.name.split('.').pop();
+        const cleanFileName = `slider_${Date.now()}.${extension}`;
+        const path = `slider-assets/${cleanFileName}`;
+
+        const reader = new FileReader();
+        reader.readAsDataURL(selectedFile);
+        reader.onload = async () => {
+            const base64Content = reader.result.split(',')[1];
+
+            try {
+                const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/contents/${path}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${GITHUB_CONFIG.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `🚀 App Slider Image Upload: ${cleanFileName}`,
+                        content: base64Content,
+                        branch: GITHUB_CONFIG.branch
+                    })
+                });
+
+                clearInterval(progressInterval);
+
+                if(response.ok) {
+                    progressBar.style.width = '100%';
+                    liveSizeText.innerText = `${totalSizeFormatted} / ${totalSizeFormatted}`;
+                    statusText.innerText = 'Upload finished';
+                    
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                        const cdnUrl = `https://cdn.jsdelivr.net/gh/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}@${GITHUB_CONFIG.branch}/${path}`;
+                        outputUrl.value = cdnUrl;
+                        resultCard.style.display = 'block';
+                    }, 600);
+                } else {
+                    const resData = await response.json();
+                    showError(`গিটহাব রেসপন্স এরর: ${resData.message}`);
+                }
+            } catch (err) {
+                clearInterval(progressInterval);
+                showError('নেটওয়ার্ক কানেকশন ফেইলড! আবার চেষ্টা করো।');
+            }
+        };
+    }
+
+    function resetUploader() {
+        selectedFile = null;
+        fileInput.value = '';
+        if(progressInterval) clearInterval(progressInterval);
+        
+        resultCard.style.display = 'none';
+        previewContainer.style.display = 'none';
+        previewImage.src = '';
+        errorBanner.style.display = 'none';
+        
+        /* এখানে ফিক্স করা হয়েছে: ক্যানসেল বা নতুন আপলোডের সময় বাটনগুলোও হাইড হয়ে যাবে */
+        actionContainer.style.display = 'none'; 
+        dropZone.style.display = 'block';
+    }
+
+    function showTopError(message) {
+        errorText.innerText = message;
+        errorBanner.style.display = 'flex';
+        previewContainer.style.display = 'none';
+        actionContainer.style.display = 'none';
+        dropZone.style.display = 'block';
+    }
+
+    function showError(message) {
+        if(progressInterval) clearInterval(progressInterval);
+        progressContainer.style.display = 'none';
+        errorText.innerText = message;
+        errorBanner.style.display = 'flex';
+        dropZone.style.display = 'block';
+    }
+
+    function copyToClipboard() {
+        outputUrl.select();
+        outputUrl.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(outputUrl.value);
+        
+        const copyBtn = document.getElementById("copyBtn");
+        copyBtn.innerHTML = `<span class="material-icons-outlined" style="color: #146C43;">done</span>`;
+        
+        setTimeout(() => {
+            copyBtn.innerHTML = `<span class="material-icons-outlined">content_copy</span>`;
+        }, 2000);
+    }
+</script>
+</body>
+</html>
